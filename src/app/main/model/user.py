@@ -4,7 +4,7 @@ Problem Domain
 Design a User model that represents the chainstack_platform users
 """
 from .. import db, flask_bcrypt
-
+from datetime import datetime
 
 class User(db.Model):
     """User Model represents chainstack_platform users"""
@@ -14,6 +14,7 @@ class User(db.Model):
     email = db.Column(db.String(255), unique=True, nullable=False)
     password_hash = db.Column(db.String(100))
     platform_admin = db.Column(db.Boolean, nullable=False, default=False)
+    user_registered_on = db.Column(db.DateTime, nullable=False)
 
     @property
     def password(self):
