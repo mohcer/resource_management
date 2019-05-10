@@ -6,13 +6,13 @@ Design a User Service class that handles all the services related to platform us
 
 from datetime import datetime
 
-from app.main import db
-from app.main.model.user import User
-from app.main.model.resource import Resource
-from app.main.exceptions import UserAlreadyExists
+from ...main import db
+from ...main.model.user import User
+from ...main.model.resource import Resource
+from ...main.exceptions import UserAlreadyExists
 
 from .resource_service import create_new_resource
-from app.main.exceptions import ResourceLimitExceeded
+from ...main.exceptions import ResourceLimitExceeded
 
 
 def commit_changes(data):
@@ -42,6 +42,17 @@ def create_new_user(data: dict) -> bool:
         raise UserAlreadyExists('Sorry! User Already Exists')
 
 
+"""TODO admin access required"""
+
+
+def get_all_platform_users():
+    """
+    :purpose:
+    return all the platform users
+    """
+    return User.query.all()
+
+
 def get_user_by_id(user_id: int) -> User:
     """
     :param user_id: input user id
@@ -52,18 +63,39 @@ def get_user_by_id(user_id: int) -> User:
     return User.query.filter_by(user_id=user_id).first()
 
 
+"""TODO admin previlage required """
+
+
+def set_user_quota(user_id: int, quota: int):
+    """
+    :param user_id: input user_id
+    :param quota: input quota value
+    :return bool:
+    :purpose: sets new quota for the given user id
+    """
+    user = get_user_by_id(user_id)
+
+    user.user_quota = quota
+
+
 def create_new_user_resource(user_id: int, resource_name: str) -> bool:
     user = get_user_by_id(user_id)
 
     if user.check_quota_available():
         # user can create resource
-        resource = create_new_resource(resource_name)
+        resource = Resource(
+            resource_name=resource_name,
+            user_id=user_id
+        )
+
+        commit_changes(resource)
 
         user.resources.append(resource)
-        commit_changes(user)
+
+        #commit_changes(user)
     else:
         # quota limit exceeded user cannot create resource
         raise ResourceLimitExceeded('Sorry! cannot create more resource '
                                     'quota limit exceeded please contact admin to increase quota')
 
-    return True
+    return resource.resource_id

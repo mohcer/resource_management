@@ -18,7 +18,7 @@ class User(db.Model):
     platform_admin = db.Column(db.Boolean, nullable=False, default=False)
     user_registered_on = db.Column(db.DateTime, nullable=False)
     user_quota = db.Column(db.Integer, nullable=False, default=-1)
-
+    test_col = db.Column(db.Integer, nullable=False, default=0)
     resources = db.relationship('Resource', backref='user', lazy=True)
 
     @property
