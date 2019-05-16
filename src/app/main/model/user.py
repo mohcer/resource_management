@@ -3,9 +3,13 @@ Problem Domain
 
 Design a User model that represents the chainstack_platform users
 """
+import datetime
+import jwt
+import flask_bcrypt
+
 from ...main.exceptions import ResourceLimitExceeded
 from .. import db, flask_bcrypt
-from .resource import Resource
+from .resource import CResource
 
 
 class User(db.Model):
@@ -18,8 +22,7 @@ class User(db.Model):
     platform_admin = db.Column(db.Boolean, nullable=False, default=False)
     user_registered_on = db.Column(db.DateTime, nullable=False)
     user_quota = db.Column(db.Integer, nullable=False, default=-1)
-    test_col = db.Column(db.Integer, nullable=False, default=0)
-    resources = db.relationship('Resource', backref='user', lazy=True)
+    resources = db.relationship('CResource', backref="user", cascade="all, delete-orphan", lazy='dynamic')
 
     @property
     def password(self):
@@ -36,7 +39,7 @@ class User(db.Model):
         """
         :purpose: check if user quota is available to create more resources
         """
-        current_user_resource_count = len(self.resources)
+        current_user_resource_count = self.resources.count()
 
         def user_quota_set():
             return self.user_quota != -1
@@ -48,4 +51,4 @@ class User(db.Model):
         return status
 
     def __repr__(self):
-        return "<User '{}'>".format(self.username)
+        return "<User '{}'>".format(self.email)

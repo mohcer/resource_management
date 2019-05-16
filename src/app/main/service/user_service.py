@@ -8,10 +8,9 @@ from datetime import datetime
 
 from ...main import db
 from ...main.model.user import User
-from ...main.model.resource import Resource
-from ...main.exceptions import UserAlreadyExists
+from ...main.model.resource import CResource
+from ...main.exceptions import UserAlreadyExists, UserNotFound
 
-from .resource_service import create_new_resource
 from ...main.exceptions import ResourceLimitExceeded
 
 
@@ -37,18 +36,30 @@ def create_new_user(data: dict) -> bool:
 
         commit_changes(new_user)
 
-        return new_user.user_id
+        return True
     else:
         raise UserAlreadyExists('Sorry! User Already Exists')
 
 
-"""TODO admin access required"""
+def delete_platform_user(user_id: int) -> bool:
+    """
+    :param user_id: input user id whose account has to be deleted from this platform
+    :return bool:
+    :purpose: Deletes the given user from this platform
+    """
+    db.session.delete(User.query.filter_by(user_id=user_id).one())
+    # commit the change to the backend
+    db.session.commit()
+
+    return True
 
 
 def get_all_platform_users():
     """
     :purpose:
     return all the platform users
+
+    Note: only platform admin can access all platform users
     """
     return User.query.all()
 
@@ -60,10 +71,12 @@ def get_user_by_id(user_id: int) -> User:
     :purpose:
     for the given user_id return the User Object
     """
-    return User.query.filter_by(user_id=user_id).first()
+    user = User.query.filter_by(user_id=user_id).first()
 
-
-"""TODO admin previlage required """
+    if not user:
+        raise UserNotFound('Sorry User Does not exists!')
+    else:
+        return user
 
 
 def set_user_quota(user_id: int, quota: int):
@@ -78,12 +91,13 @@ def set_user_quota(user_id: int, quota: int):
     user.user_quota = quota
 
 
-def create_new_user_resource(user_id: int, resource_name: str) -> bool:
+def create_new_user_resource(user_id: int, req_data: dict) -> bool:
+    resource_name = req_data['resource_name']
     user = get_user_by_id(user_id)
 
     if user.check_quota_available():
         # user can create resource
-        resource = Resource(
+        resource = CResource(
             resource_name=resource_name,
             user_id=user_id
         )
@@ -92,10 +106,24 @@ def create_new_user_resource(user_id: int, resource_name: str) -> bool:
 
         user.resources.append(resource)
 
-        #commit_changes(user)
+        commit_changes(user)
     else:
         # quota limit exceeded user cannot create resource
         raise ResourceLimitExceeded('Sorry! cannot create more resource '
                                     'quota limit exceeded please contact admin to increase quota')
 
     return resource.resource_id
+
+
+def set_new_user_quota(user: User, new_user_quota: int) -> bool:
+    """
+    :param user_id:
+    :param new_user_quota:
+    :return:
+    """
+    user.user_quota = new_user_quota
+
+    db.session.commit()
+
+    return True
+

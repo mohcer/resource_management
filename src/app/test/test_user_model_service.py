@@ -10,10 +10,10 @@ import uuid
 
 from app.main import db
 from app.main.model.user import User
-from app.main.model.resource import Resource
+from app.main.model.resource import CResource
 from app.test.base import BaseTestCase
 from app.main.service.user_service import create_new_user, get_user_by_id, create_new_user_resource
-from app.main.service.resource_service import create_new_resource, get_resource_by_id
+from app.main.service.resource_service import get_resource_by_id
 from app.main.exceptions import UserAlreadyExists, ResourceLimitExceeded
 
 

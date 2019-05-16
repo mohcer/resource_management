@@ -11,3 +11,15 @@ class ResourceLimitExceeded(Exception):
 
 class UserAlreadyExists(Exception):
     pass
+
+
+class UserNotFound(Exception):
+    pass
+
+
+class UserResourceNotFound(Exception):
+    pass
+
+
+class ResourceNotFound(Exception):
+    pass
