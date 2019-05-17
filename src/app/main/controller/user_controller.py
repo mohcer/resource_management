@@ -8,22 +8,26 @@ from flask import request
 from ..util.dto import UserDto
 from ..exceptions import UserNotFound
 from ..service.user_service import *
-
+from ..util.decorator import login_required, admin_required
 from flask import current_app
 api = UserDto.api
-parser = api.parser()
+parser_one = api.parser()
+parser_two = api.parser()
 user_req_data = UserDto.user_req_model
 user_res_data = UserDto.user_res_model
 
-parser.add_argument('new_user_quota', required=True, location='args')
-
+parser_one.add_argument('new_user_quota', required=True, location='args')
+parser_two.add_argument('Authorization', required=True, help="Valid Auth token is required", location='headers')
 
 @api.route('/')
 class ListAndCreateUser(Resource):
 
     @api.doc('list of all platform registered users')
+    @login_required
+    @admin_required
+    @api.expect(parser_two)
     @api.marshal_list_with(user_res_data, envelope='data')
-    def get(self):
+    def get(self, user_data=None, *args, **kwargs):
         """
         :purpose: Fetches the details of all the platform users.
 
@@ -51,9 +55,11 @@ class ListAndCreateUser(Resource):
         else:
             return resp_obj, 200
 
-    @api.expect(user_req_data, validate=True)
+    @login_required
+    @admin_required
+    @api.expect(user_req_data, parser_two, validate=True)
     @api.response(201, 'user created successfully!')
-    def post(self):
+    def post(self, user_data=None, *args, **kwargs):
         """
         :purpose: creates a new platform user
 
@@ -92,14 +98,17 @@ class ListAndCreateUser(Resource):
 @api.doc(params={'user_id': 'user id'})
 class User(Resource):
     @api.doc('list user info')
+    @login_required
+    @admin_required
+    @api.expect(parser_two)
     @api.marshal_with(user_res_data)
-    def get(self, user_id):
+    def get(self, user_id, user_data=None, *args, **kwargs):
         """
         :purpose: Fetches the details of this user
 
         Note:
         * Login Required
-        * The same logged in user can access his own information but cannot access the details of other users
+        * Users are not allowed to access the information of other platform users
         * Platform Admin can access the information of any user
         """
         try:
@@ -125,8 +134,10 @@ class User(Resource):
             return resp_obj, 200
 
     @api.doc('Delete user from this platform')
+    @login_required
+    @admin_required
     @api.marshal_with(user_res_data)
-    def delete(self, user_id):
+    def delete(self, user_id, user_data=None, *args, **kwargs):
         """
         :purpose: delete user from this platform
 
@@ -164,8 +175,10 @@ class User(Resource):
             return resp_obj
 
     @api.doc('Set new user resource quota')
-    @api.expect(parser, validate=True)
-    def put(self, user_id):
+    @login_required
+    @admin_required
+    @api.expect(parser_one, parser_two, validate=True)
+    def put(self, user_id, user_data=None, *args, **kwargs):
         """
         :purpose: sets new quota for the given user
 
@@ -175,7 +188,7 @@ class User(Resource):
         * any other user cannot create and or set quota for himself or any other platform user
         """
         try:
-            args = parser.parse_args()
+            args = parser_one.parse_args()
             new_user_quota = args['new_user_quota']
 
             # check if user exists

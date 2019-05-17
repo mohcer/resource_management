@@ -79,6 +79,21 @@ def get_user_by_id(user_id: int) -> User:
         return user
 
 
+def get_user_by_email(user_email: str) -> User:
+    """
+    :param user_email: input user id
+    :return User:
+    :purpose:
+    for the given user_email return the User Object
+    """
+    user = User.query.filter_by(email=user_email).first()
+
+    if not user:
+        raise UserNotFound('Sorry User Does not exists!')
+    else:
+        return user
+
+
 def set_user_quota(user_id: int, quota: int):
     """
     :param user_id: input user_id

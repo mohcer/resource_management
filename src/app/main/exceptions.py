@@ -23,3 +23,8 @@ class UserResourceNotFound(Exception):
 
 class ResourceNotFound(Exception):
     pass
+
+
+class InvalidAction(Exception):
+    pass
+

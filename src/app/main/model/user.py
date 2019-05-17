@@ -6,10 +6,9 @@ Design a User model that represents the chainstack_platform users
 import datetime
 import jwt
 import flask_bcrypt
-
-from ...main.exceptions import ResourceLimitExceeded
+from ..model.token_garbage import TokenGarbage
 from .. import db, flask_bcrypt
-from .resource import CResource
+from ..config import key
 
 
 class User(db.Model):
@@ -33,7 +32,7 @@ class User(db.Model):
         self.password_hash = flask_bcrypt.generate_password_hash(password).decode('utf-8')
 
     def check_password(self, password: str):
-        return flask_bcrypt.check_password_hash(self._password_hash, password)
+        return flask_bcrypt.check_password_hash(self.password_hash, password)
 
     def check_quota_available(self):
         """
@@ -42,13 +41,60 @@ class User(db.Model):
         current_user_resource_count = self.resources.count()
 
         def user_quota_set():
-            return self.user_quota != -1
+            return self.user_quota < 0
 
         quota_set = user_quota_set()
 
         status = True if not quota_set or current_user_resource_count < self.user_quota else False
 
         return status
+
+    @staticmethod
+    def encode_auth_token(user_id):
+        """
+        :param user_id: user id of the user
+        :returns String: String encoded auth token
+        :raise Exception: if unable to encode auth_token
+        purpose: Generates the auth token for the given user_id along with other information
+        """
+        try:
+            payload = {
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1, seconds=10),
+                'iat': datetime.datetime.utcnow(),
+                'sub': str(user_id)
+            }
+
+            return jwt.encode(
+                payload,
+                key,
+                algorithm='HS256'
+            )
+        except Exception as e:
+            raise e
+
+    @staticmethod
+    def decode_auth_token(auth_token):
+        """
+        :param auth_token:
+        :returns String: decoded auth token
+        :raises:
+        ExpiredSignatureError: If the signature has expired
+        InvalidTokenError: If the token has expired
+        purpose: Decodes the given auth token and returns the string payload value, raises Exception otherwise
+        """
+        try:
+            payload = jwt.decode(auth_token, key)
+            is_token_dumped = TokenGarbage.is_dumped(auth_token)
+
+            if is_token_dumped:
+                raise jwt.InvalidTokenError('Received Invalid Token login again')
+            else:
+                return payload['sub']
+
+        except jwt.ExpiredSignatureError as e:
+            raise e
+        except jwt.InvalidTokenError as e:
+            raise e
 
     def __repr__(self):
         return "<User '{}'>".format(self.email)
