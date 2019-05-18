@@ -60,6 +60,9 @@ class UserLogout(Resource):
         Note:
         * User has to Login first and send valid auth token in header to Logout
         * Once the User Logs out the auth token will be dumped
+
+        **Important
+        * Copy the auth token from login operation above and paste it in the Authorization header field below
         """
         try:
             auth_header = request.headers.get('Authorization')

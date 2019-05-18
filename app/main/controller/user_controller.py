@@ -36,6 +36,9 @@ class ListAndCreateUser(Resource):
         Note:
         * Login Required
         * Only Platform Admin is allowed to access the details of all the platform users
+
+        **Important
+        * Copy the auth token from login operation above and paste it in the Authorization header field below
         """
         try:
             current_app.logger.info("Request to fetch user details")
@@ -68,6 +71,9 @@ class ListAndCreateUser(Resource):
         Note:
         * Login Required
         * Only Platform Admin can create new users on this platform
+
+        **Important
+        * Copy the auth token from login operation above and paste it in the Authorization header field below
         """
         try:
             req_data = request.json
@@ -111,6 +117,9 @@ class User(Resource):
         * Login Required
         * Logged in user can access his own information but cannot access other users information
         * Platform Admin can access the information of any user
+
+        **Important
+        * Copy the auth token from login operation above and paste it in the Authorization header field below
         """
         try:
             current_loggedin_user = user_data['user_id']
@@ -162,6 +171,9 @@ class User(Resource):
         * Also All the resources created by this user will be automatically deleted
         * Platform Admin cannot delete his own account
         * At any given time there will be at least one user on this platform i.e Platform Admin
+
+        **Important
+        * Copy the auth token from login operation above and paste it in the Authorization header field below
         """
         try:
             current_loggedin_user = user_data['user_id']
@@ -216,6 +228,9 @@ class User(Resource):
         * Login required
         * Only platform admin can set/unset new user resource quota
         * any other user cannot create and or set quota for himself or any other platform user
+
+        **Important
+        * Copy the auth token from login operation above and paste it in the Authorization header field below
         """
         try:
             args = parser_one.parse_args()

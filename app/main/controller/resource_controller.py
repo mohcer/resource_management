@@ -35,7 +35,11 @@ class AllPlatformResources(Resource):
         """
         :purpose: Fetches the details of all the platform resources
 
-        Note: Only Platform Admin is allowed to access the list of all platform resource
+        Note:
+        * Only Platform Admin is allowed to access the list of all platform resource
+
+        **Important
+        * Copy the auth token from login operation above and paste it in the Authorization header field below
         """
         try:
             resp_obj = dict()
@@ -75,6 +79,9 @@ class AllUserResources(Resource):
         * Current Logged in user is allowed to list only his resources and cannot access
           other users resource
         * Platform Admin can access any users all resources
+
+        **Important
+        * Copy the auth token from login operation above and paste it in the Authorization header field below
         """
         try:
             current_loggedin_user = user_data['user_id']
@@ -123,6 +130,9 @@ class AllUserResources(Resource):
           admin has to increase the user quota first
         * User can create multiple resources with same name but internally
           it is stored with a unique id
+
+        **Important
+        * Copy the auth token from login operation above and paste it in the Authorization header field below
         """
         try:
             current_loggedin_user = user_data['user_id']
@@ -177,6 +187,9 @@ class AllUserResources(Resource):
         * user can delete only his resources and cannot delete other users resources
         * if resource id is not provided it will delete all the user resources
         * Platform Admin can delete any users resource
+
+        **Important
+        * Copy the auth token from login operation above and paste it in the Authorization header field below
         """
         try:
             current_loggedin_user = user_data['user_id']
