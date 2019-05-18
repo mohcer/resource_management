@@ -8,6 +8,7 @@ from flask import request
 from ..util.dto import ResourceDto
 from ..exceptions import UserResourceNotFound, ResourceLimitExceeded, ResourceNotFound, UserNotFound
 from ..exceptions import InvalidAction
+from ..service.user_service import get_user_by_id
 from ..service.resource_service import *
 from ..service.user_service import create_new_user_resource
 from ..service.auth_service import is_same_as_loggedin_user
@@ -181,12 +182,13 @@ class AllUserResources(Resource):
             current_loggedin_user = user_data['user_id']
             is_loggedin_user_admin = user_data['platform_admin']
 
+            # check if the current logged in user is same as requested user or platform admin
             if is_same_as_loggedin_user(user_id, current_loggedin_user) or is_loggedin_user_admin:
                 args = parser_one.parse_args()
                 resource_id = args['resource_id'] if 'resource_id' in args else None
 
-                # check if the current logged in user is as the user_id
-                delete_user_resource(user_id, resource_id)
+                user = get_user_by_id(user_id)
+                delete_user_resource(user, resource_id)
 
                 resp_obj = {
                     'status': 'success',

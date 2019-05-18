@@ -18,8 +18,12 @@ from app.main.service.user_service import(
     create_new_user_resource,
     set_new_user_quota,
 )
-from app.main.service.resource_service import get_user_resources
-from app.main.service.resource_service import get_resource_by_id
+from app.main.service.resource_service import(
+    get_resource_by_id,
+    get_user_resources,
+    delete_user_resource
+)
+
 from app.main.exceptions import UserAlreadyExists, ResourceLimitExceeded
 
 
@@ -98,5 +102,31 @@ class TestUserModel(BaseTestCase):
 
             self.assertTrue(resource_1.user_id == user.user_id)
             self.assertTrue(resource_2.user_id == user.user_id)
+
+    def test_quota_increase_on_resource_delete(self):
+        data = dict()
+        data['email'] = 'test@gmail.com'
+        data['password'] = 'test123'
+
+        new_user_id = create_new_user(data)
+
+        user = get_user_by_id(new_user_id)
+
+        set_new_user_quota(user, 3)
+
+        resource_id_1 = create_new_user_resource(user.user_id, {"resource_name": "test_resource1"})
+
+        resource_id_2 = create_new_user_resource(user.user_id, {"resource_name": "test_resource2"})
+
+        self.assertTrue(user.quota_remaining == 1)
+
+        delete_user_resource(user, resource_id_1)
+
+        self.assertTrue(user.quota_remaining == 2)
+
+        # delete all resources of user and check user quota reset to original count
+        delete_user_resource(user)
+
+        self.assertTrue(user.quota_remaining == 3)
 
 

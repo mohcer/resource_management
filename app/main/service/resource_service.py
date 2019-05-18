@@ -8,7 +8,7 @@ from datetime import datetime
 
 from ...main import db
 from ...main.model.resource import CResource
-
+from ..model.user import User
 
 def commit_changes(data):
     db.session.add(data)
@@ -51,18 +51,24 @@ def get_user_resources(user_id: int, resource_id: int = None) -> list:
     return res
 
 
-def delete_user_resource(user_id: int, resource_id: int) -> bool:
+def delete_user_resource(user: User, resource_id: int = None) -> bool:
     """
-    :param user_id: input user id
+    :param user: user object
     :param resource_id: input resource id
     :return bool:
     :purpose: deletes a particular user resource from the platform
     """
 
-    if not resource_id:
-        db.session.delete(CResource.query.filter_by(user_id=user_id).all())
+    if resource_id is None:
+        db.session.query(CResource).filter(CResource.user_id == user.user_id).delete()
+
+        # increment the user remaining quota by available user quota
+        user.quota_remaining = user.user_quota
     else:
-        db.session.delete(CResource.query.filter_by(user_id=user_id, resource_id=resource_id).one())
+        db.session.delete(CResource.query.filter_by(user_id=user.user_id, resource_id=resource_id).one())
+
+        # increment the user remaining quota by one
+        user.quota_remaining += 1
 
     # commit the change to the backend
     db.session.commit()
