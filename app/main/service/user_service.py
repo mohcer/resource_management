@@ -94,19 +94,7 @@ def get_user_by_email(user_email: str) -> User:
         return user
 
 
-def set_user_quota(user_id: int, quota: int):
-    """
-    :param user_id: input user_id
-    :param quota: input quota value
-    :return bool:
-    :purpose: sets new quota for the given user id
-    """
-    user = get_user_by_id(user_id)
-
-    user.user_quota = quota
-
-
-def create_new_user_resource(user_id: int, req_data: dict) -> bool:
+def create_new_user_resource(user_id: int, req_data: dict):
     resource_name = req_data['resource_name']
     user = get_user_by_id(user_id)
 
@@ -121,6 +109,11 @@ def create_new_user_resource(user_id: int, req_data: dict) -> bool:
 
         user.resources.append(resource)
 
+        # decrease the quota remaining for this user by 1
+        if user.user_quota_set():
+            user.quota_remaining -= 1
+
+        # commit the quota remaining to db
         commit_changes(user)
     else:
         # quota limit exceeded user cannot create resource
@@ -132,11 +125,12 @@ def create_new_user_resource(user_id: int, req_data: dict) -> bool:
 
 def set_new_user_quota(user: User, new_user_quota: int) -> bool:
     """
-    :param user_id:
-    :param new_user_quota:
+    :param user: user object whose quota is to be updated
+    :param new_user_quota: new quota
     :return:
     """
     user.user_quota = new_user_quota
+    user.quota_remaining = new_user_quota
 
     db.session.commit()
 

@@ -9,7 +9,7 @@ from .main.controller.resource_controller import api as resource_ns
 blueprint = Blueprint('api', __name__)
 
 api = Api(blueprint,
-          title='API\'s',
+          title='Chainstack Platform API\'s',
           version='1.0',
           description='a boilerplate for flask restplus web service'
           )

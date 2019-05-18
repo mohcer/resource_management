@@ -21,6 +21,7 @@ class User(db.Model):
     platform_admin = db.Column(db.Boolean, nullable=False, default=False)
     user_registered_on = db.Column(db.DateTime, nullable=False)
     user_quota = db.Column(db.Integer, nullable=False, default=-1)
+    quota_remaining = db.Column(db.Integer, nullable=False, default=-1)
     resources = db.relationship('CResource', backref="user", cascade="all, delete-orphan", lazy='dynamic')
 
     @property
@@ -34,18 +35,22 @@ class User(db.Model):
     def check_password(self, password: str):
         return flask_bcrypt.check_password_hash(self.password_hash, password)
 
+    def user_quota_set(self):
+        """
+        :purpose: checks if the user quota is set or not
+        """
+        return self.user_quota >= 0
+
     def check_quota_available(self):
         """
         :purpose: check if user quota is available to create more resources
         """
-        current_user_resource_count = self.resources.count()
+        quota_set = self.user_quota_set()
 
-        def user_quota_set():
-            return self.user_quota < 0
-
-        quota_set = user_quota_set()
-
-        status = True if not quota_set or current_user_resource_count < self.user_quota else False
+        if not quota_set or (quota_set and self.quota_remaining <= self.user_quota and self.quota_remaining > 0):
+            status = True
+        else:
+            status = False
 
         return status
 

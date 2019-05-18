@@ -28,7 +28,8 @@ class UserDto:
         'user_id': fields.Integer(required=True, description='user id'),
         'email': fields.String(required=True, description='unique user email'),
         'user_registered_on': fields.DateTime(required=True, description='user registered on'),
-        'user_quota': fields.Integer(required=True, description='user quota')
+        'user_quota': fields.Integer(required=True, description='user quota'),
+        'quota_remaining': fields.Integer(required=True, description='user quota remaining')
     })
 
     user_res_model = api.model('user_res_details', {

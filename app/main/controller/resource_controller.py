@@ -48,13 +48,6 @@ class AllPlatformResources(Resource):
 
             if not res:
                 resp_obj['message'] = 'currently no user has created any resource on this platform'
-
-        except ResourceNotFound as e:
-            resp_obj = dict()
-            resp_obj['status'] = 'fail'
-            resp_obj['message'] = str(e)
-
-            return resp_obj, 404
         except Exception as e:
             resp_obj = {
                 'status': 'fail',
@@ -158,7 +151,7 @@ class AllUserResources(Resource):
                 'message': str(e)
             }
 
-            return resp_obj, 400
+            return resp_obj, 422
         except Exception as e:
             resp_obj = {
                 'status': 'fail',

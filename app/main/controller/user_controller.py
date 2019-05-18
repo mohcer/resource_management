@@ -6,8 +6,9 @@ User Controller handles all the requests to fetch user related details
 from flask_restplus import Resource
 from flask import request
 from ..util.dto import UserDto
-from ..exceptions import UserNotFound
+from ..service.auth_service import is_same_as_loggedin_user
 from ..service.user_service import *
+from ..exceptions import InvalidAction
 from ..util.decorator import login_required, admin_required
 from flask import current_app
 api = UserDto.api
@@ -18,6 +19,7 @@ user_res_data = UserDto.user_res_model
 
 parser_one.add_argument('new_user_quota', required=True, location='args')
 parser_two.add_argument('Authorization', required=True, help="Valid Auth token is required", location='headers')
+
 
 @api.route('/')
 class ListAndCreateUser(Resource):
@@ -99,7 +101,6 @@ class ListAndCreateUser(Resource):
 class User(Resource):
     @api.doc('list user info')
     @login_required
-    @admin_required
     @api.expect(parser_two)
     @api.marshal_with(user_res_data)
     def get(self, user_id, user_data=None, *args, **kwargs):
@@ -108,16 +109,29 @@ class User(Resource):
 
         Note:
         * Login Required
-        * Users are not allowed to access the information of other platform users
+        * Logged in user can access his own information but cannot access other users information
         * Platform Admin can access the information of any user
         """
         try:
-            user = get_user_by_id(user_id)
-
+            current_loggedin_user = user_data['user_id']
+            is_loggedin_user_admin = user_data['platform_admin']
             resp_obj = dict()
-            resp_obj['status'] = 'success'
-            resp_obj['message'] = 'User Found'
-            resp_obj['data'] = user
+
+            if is_same_as_loggedin_user(user_id, current_loggedin_user) or is_loggedin_user_admin:
+                user = get_user_by_id(user_id)
+
+                resp_obj['status'] = 'success'
+                resp_obj['message'] = 'User Found'
+                resp_obj['data'] = user
+            else:
+                raise InvalidAction('Permission Denied cannot access other users information!')
+        except InvalidAction as e:
+            resp_obj = {
+                'status': 'fail',
+                'message': str(e)
+            }
+
+            return resp_obj, 401
         except UserNotFound as e:
             resp_obj = dict()
             resp_obj['status'] = 'fail'
@@ -136,6 +150,7 @@ class User(Resource):
     @api.doc('Delete user from this platform')
     @login_required
     @admin_required
+    @api.expect(parser_two)
     @api.marshal_with(user_res_data)
     def delete(self, user_id, user_data=None, *args, **kwargs):
         """
@@ -143,36 +158,51 @@ class User(Resource):
 
         Note:
         * Login required
-        * Only platform admin can delete users from this account
+        * Only platform admin can delete users from this Platform
         * Also All the resources created by this user will be automatically deleted
         * Platform Admin cannot delete his own account
+        * At any given time there will be at least one user on this platform i.e Platform Admin
         """
         try:
-            # check if the given user_id already exists on this platform
-            get_user_by_id(user_id)
+            current_loggedin_user = user_data['user_id']
 
-            delete_platform_user(user_id)
+            # check if admin is trying to delete his own account
+            if not is_same_as_loggedin_user(user_id, current_loggedin_user):
 
+                # check if the given user_id already exists on this platform
+                get_user_by_id(user_id)
+
+                delete_platform_user(user_id)
+
+                resp_obj = {
+                    'status': 'success',
+                    'message': 'user successfully deleted from this platform'
+                }
+            else:
+                raise InvalidAction('Sorry Platform Admin cannot delete his own account!')
+        except InvalidAction as e:
             resp_obj = {
-                'status': 'success',
-                'message': 'user successfully deleted from this platform'
+                'status': 'fail',
+                'message': str(e)
             }
 
-            return resp_obj
+            return resp_obj, 405
         except UserNotFound as e:
             resp_obj = {
                 'status': 'fail',
                 'message': str(e)
             }
 
-            return resp_obj
+            return resp_obj, 404
         except Exception as e:
             resp_obj = {
                 'status': 'fail',
                 'message': str(e)
             }
 
-            return resp_obj
+            return resp_obj, 400
+        else:
+            return resp_obj, 200
 
     @api.doc('Set new user resource quota')
     @login_required
@@ -200,8 +230,6 @@ class User(Resource):
                 'status': 'success',
                 'message': 'User Quota updated successfully!'
             }
-
-            return resp_json, 200
         except UserNotFound as e:
             resp_json = {
                 'status': 'fail',
@@ -216,3 +244,6 @@ class User(Resource):
             }
 
             return resp_json, 400
+        else:
+            return resp_json, 200
+

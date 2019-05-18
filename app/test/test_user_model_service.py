@@ -12,7 +12,13 @@ from app.main import db
 from app.main.model.user import User
 from app.main.model.resource import CResource
 from app.test.base import BaseTestCase
-from app.main.service.user_service import create_new_user, get_user_by_id, create_new_user_resource
+from app.main.service.user_service import(
+    create_new_user,
+    get_user_by_id,
+    create_new_user_resource,
+    set_new_user_quota,
+)
+from app.main.service.resource_service import get_user_resources
 from app.main.service.resource_service import get_resource_by_id
 from app.main.exceptions import UserAlreadyExists, ResourceLimitExceeded
 
@@ -71,20 +77,26 @@ class TestUserModel(BaseTestCase):
 
         user = get_user_by_id(new_user_id)
 
-        user.quota = 1
+        set_new_user_quota(user, 1)
 
         try:
-            resource_id_1 = create_new_user_resource(user.user_id, "test_resource1")
+            resource_id_1 = create_new_user_resource(user.user_id, {"resource_name": "test_resource1"})
 
-            #resource_id_2 = create_new_user_resource(user.user_id, "test_resource2")
+            resource_id_2 = create_new_user_resource(user.user_id, {"resource_name": "test_resource2"})
 
         except Exception as e:
-            print('e')
             self.assertTrue(isinstance(e, ResourceLimitExceeded))
+
+            # check if the first resource created is available
+            user_resources = get_user_resources(new_user_id)
+
+            self.assertTrue(len(user_resources) == 1)
         else:
+            # else check the created resource is available
             resource_1 = get_resource_by_id(resource_id_1)
-            #resource_2 = get_resource_by_id(resource_id_2)
+            resource_2 = get_resource_by_id(resource_id_2)
 
             self.assertTrue(resource_1.user_id == user.user_id)
+            self.assertTrue(resource_2.user_id == user.user_id)
 
 
