@@ -6,6 +6,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'chainstack-platform_123')
     LOG_FILE_LOCATION = basedir + '/'
+    RESTPLUS_MASK_SWAGGER = False
     DEBUG = False
 
 
