@@ -8,7 +8,8 @@ from .. import db
 
 class TokenGarbage(db.Model):
     """Represents store to dump used auth tokens"""
-    __tablename__ = 'tokengarbage'
+
+    __tablename__ = "tokengarbage"
     token_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     token = db.Column(db.String(255), unique=True, nullable=False)
     dumped_on = db.Column(db.DateTime, nullable=True)
@@ -28,7 +29,7 @@ class TokenGarbage(db.Model):
         purpose:
         returns a String representation of the BlackListedToken class
         """
-        return '<id token: {}'.format(self.token)
+        return "<id token: {}".format(self.token)
 
     @staticmethod
     def is_dumped(auth_token):
@@ -41,4 +42,3 @@ class TokenGarbage(db.Model):
         res = TokenGarbage.query.filter_by(token=auth_token).first()
 
         return True if res else False
-

@@ -8,20 +8,28 @@ from flask import current_app
 from flask_restplus import Resource, reqparse
 from ..service.auth_service import *
 from ..util.dto import AuthDto
+
 # from ..util.decorator import login_required
 from .. import flask_bcrypt
+
 api = AuthDto.api
 user_auth = AuthDto.user_auth
 
 parser = reqparse.RequestParser()
 # add location as args to search in queryString
-parser.add_argument('Authorization', required=True, help="Valid Auth token is required", location='headers')
+parser.add_argument(
+    "Authorization",
+    required=True,
+    help="Valid Auth token is required",
+    location="headers",
+)
 
 
-@api.route('/login')
+@api.route("/login")
 class UserLogin(Resource):
     """ User Login Resource """
-    @api.doc('User Login')
+
+    @api.doc("User Login")
     @api.expect(user_auth, validate=True)
     def post(self):
         """
@@ -40,18 +48,16 @@ class UserLogin(Resource):
             res, http_status = login_user(req_data)
             return res, http_status
         except UserNotFound as e:
-            resp_obj = {
-                'status': 'fail',
-                'message': str(e)
-            }
+            resp_obj = {"status": "fail", "message": str(e)}
 
             return resp_obj, 404
 
 
-@api.route('/logout')
+@api.route("/logout")
 class UserLogout(Resource):
     """ User Logout Resource """
-    @api.doc('User Logout')
+
+    @api.doc("User Logout")
     @api.expect(parser, validate=True)
     def post(self):
         """
@@ -65,7 +71,7 @@ class UserLogout(Resource):
         * Copy the auth token from login operation above and paste it in the Authorization header field below
         """
         try:
-            auth_header = request.headers.get('Authorization')
+            auth_header = request.headers.get("Authorization")
 
             if auth_header:
                 res, http_status = logout_user(auth_header)
@@ -73,16 +79,12 @@ class UserLogout(Resource):
                 return res, http_status
             else:
                 resp_obj = {
-                    'status': 'fail',
-                    'message': 'Please Provide a Valid Auth Token!'
+                    "status": "fail",
+                    "message": "Please Provide a Valid Auth Token!",
                 }
 
                 return resp_obj, 403
         except Exception as e:
-            resp_obj = {
-                'status': 'fail',
-                'message': str(e)
-            }
+            resp_obj = {"status": "fail", "message": str(e)}
 
             return resp_obj, 200
-

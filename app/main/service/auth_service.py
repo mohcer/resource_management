@@ -13,8 +13,8 @@ from ...main.exceptions import UserNotFound
 
 def login_user(data):
     """ logs in user """
-    email = data['email']
-    password = data['password']
+    email = data["email"]
+    password = data["password"]
 
     user = get_user_by_email(email)
 
@@ -22,14 +22,16 @@ def login_user(data):
         auth_token = User.encode_auth_token(user.user_id)
         if auth_token:
             res_obj = {
-                'status': 'success',
-                'message': 'successfully logged in',
-                'Authorization': auth_token.decode()
+                "status": "success",
+                "message": "successfully logged in",
+                "Authorization": auth_token.decode(),
             }
 
             return res_obj, 200
     else:
-        raise UserNotFound('Sorry! Credentials does not match or User is not registered with the platform.')
+        raise UserNotFound(
+            "Sorry! Credentials does not match or User is not registered with the platform."
+        )
 
 
 def logout_user(data):
@@ -39,29 +41,20 @@ def logout_user(data):
     :purpose: logout current user and invalidate auth token
     """
     try:
-        auth_token = data if data else ''
+        auth_token = data if data else ""
         if auth_token:
             resp = User.decode_auth_token(auth_token)
             if isinstance(resp, str):
                 # dump this token as user has logout
                 return dump_token(auth_token)
             else:
-                resp_obj = {
-                    'status': 'fail',
-                    'message': resp
-                }
+                resp_obj = {"status": "fail", "message": resp}
                 return resp_obj, 401
         else:
-            resp_obj = {
-                'status': 'fail',
-                'message': 'Provide a valid auth Token'
-            }
+            resp_obj = {"status": "fail", "message": "Provide a valid auth Token"}
             return resp_obj, 403
     except Exception as e:
-        resp_obj = {
-            'status': 'fail',
-            'message': str(e)
-        }
+        resp_obj = {"status": "fail", "message": str(e)}
         return resp_obj, 403
 
 
@@ -74,33 +67,29 @@ def get_logged_in_user(user_request):
     """
     try:
         # get the auth token from the request headers
-        auth_token = user_request.headers.get('Authorization')
+        auth_token = user_request.headers.get("Authorization")
         if auth_token:
             user_id = User.decode_auth_token(auth_token)
             user = get_user_by_id(user_id)
 
             resp_obj = {
-                'status': 'success',
-                'data': {
-                    'user_id': str(user.user_id),
-                    'email': user.email,
-                    'registered_on': datetime.strftime(user.user_registered_on, "%Y-%m-%d %H:%M:%S"),
-                    'platform_admin': user.platform_admin
-                }
+                "status": "success",
+                "data": {
+                    "user_id": str(user.user_id),
+                    "email": user.email,
+                    "registered_on": datetime.strftime(
+                        user.user_registered_on, "%Y-%m-%d %H:%M:%S"
+                    ),
+                    "platform_admin": user.platform_admin,
+                },
             }
             return resp_obj, 200
         else:
-            resp_obj = {
-                'status': 'fail',
-                'message': 'Provide a valid auth token.'
-            }
+            resp_obj = {"status": "fail", "message": "Provide a valid auth token."}
 
             return resp_obj, 401
     except Exception as e:
-        resp_obj = {
-            'status': 'fail',
-            'message': str(e)
-        }
+        resp_obj = {"status": "fail", "message": str(e)}
 
         return resp_obj, 401
 

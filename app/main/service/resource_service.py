@@ -10,6 +10,7 @@ from ...main import db
 from ...main.model.resource import CResource
 from ..model.user import User
 
+
 def commit_changes(data):
     db.session.add(data)
     db.session.commit()
@@ -44,7 +45,9 @@ def get_user_resources(user_id: int, resource_id: int = None) -> list:
     fetches and returns all the user resources if resource_id is present then just return that user resource
     """
     if resource_id:
-        res = CResource.query.filter_by(user_id=user_id, resource_id=resource_id).first()
+        res = CResource.query.filter_by(
+            user_id=user_id, resource_id=resource_id
+        ).first()
     else:
         res = CResource.query.filter_by(user_id=user_id).all()
 
@@ -65,7 +68,11 @@ def delete_user_resource(user: User, resource_id: int = None) -> bool:
         # increment the user remaining quota by available user quota
         user.quota_remaining = user.user_quota
     else:
-        db.session.delete(CResource.query.filter_by(user_id=user.user_id, resource_id=resource_id).one())
+        db.session.delete(
+            CResource.query.filter_by(
+                user_id=user.user_id, resource_id=resource_id
+            ).one()
+        )
 
         # increment the user remaining quota by one
         user.quota_remaining += 1
@@ -74,4 +81,3 @@ def delete_user_resource(user: User, resource_id: int = None) -> bool:
     db.session.commit()
 
     return True
-

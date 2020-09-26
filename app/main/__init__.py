@@ -1,4 +1,5 @@
 from flask import Flask
+
 # from sqlalchemy.orm import sessionmaker
 # from sqlalchemy import create_engine
 from flask_sqlalchemy import SQLAlchemy
@@ -21,8 +22,8 @@ def get_log_handler():
     """
     global app
 
-    log_file_loc = app.config['LOG_FILE_LOCATION'] + 'app.log'
-    log_format = '[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s'
+    log_file_loc = app.config["LOG_FILE_LOCATION"] + "app.log"
+    log_format = "[%(asctime)s] {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s"
     rthandler = RotatingFileHandler(log_file_loc, maxBytes=20000, backupCount=0)
     rthandler.setLevel(logging.DEBUG)
     formatter = logging.Formatter(log_format)
@@ -46,4 +47,3 @@ def create_app(config_name):
     app.logger.debug("Debug message")
 
     return app
-

@@ -27,4 +27,3 @@ class ResourceNotFound(Exception):
 
 class InvalidAction(Exception):
     pass
-

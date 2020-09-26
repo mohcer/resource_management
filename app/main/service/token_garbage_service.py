@@ -15,16 +15,10 @@ def dump_token(auth_token):
         db.session.add(invalid_token)
         db.session.commit()
 
-        res_obj = {
-            'status': 'success',
-            'message': 'successfully logged out!'
-        }
+        res_obj = {"status": "success", "message": "successfully logged out!"}
 
         return res_obj, 200
     except Exception as e:
-        res_obj = {
-            'status': 'fail',
-            'message': str(e)
-        }
+        res_obj = {"status": "fail", "message": str(e)}
 
         return res_obj, 200
