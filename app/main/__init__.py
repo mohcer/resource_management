@@ -3,13 +3,18 @@ from flask import Flask
 # from sqlalchemy.orm import sessionmaker
 # from sqlalchemy import create_engine
 from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from logging.handlers import RotatingFileHandler
 from .config import config_by_name
 
+
 import logging
 
 app = Flask(__name__)
+cors = CORS(app)
+app.config["CORS_HEADERS"] = "Content-Type"
+
 
 db = SQLAlchemy()
 flask_bcrypt = Bcrypt()
