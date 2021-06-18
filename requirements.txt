@@ -5,7 +5,7 @@ bcrypt==3.1.6
 cffi==1.12.3
 Click==7.0
 Flask==1.0.2
-Flask-Cors=3.0.10
+Flask-Cors==3.0.10
 Flask-Bcrypt==0.7.1
 Flask-Migrate==2.4.0
 flask-restplus==0.12.1
