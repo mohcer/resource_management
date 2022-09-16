@@ -16,7 +16,7 @@ gunicorn==19.9.0
 itsdangerous==1.1.0
 Jinja2==2.10.1
 jsonschema==3.0.1
-Mako==1.0.9
+Mako==1.2.2
 MarkupSafe==1.1.1
 pycparser==2.19
 PyJWT==1.7.1
